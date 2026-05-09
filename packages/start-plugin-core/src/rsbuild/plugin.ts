@@ -201,6 +201,10 @@ export function tanStackStartRsbuild(
             },
           },
           server: {
+            ...(rsbuildConfig.server?.printUrls === undefined ||
+            rsbuildConfig.server.printUrls === true
+              ? { printUrls: ({ urls }: { urls: Array<string> }) => urls }
+              : {}),
             // Rsbuild compression currently treats Node's raw header array
             // writeHead form as an object, which corrupts SSR response headers.
             compress: false,
