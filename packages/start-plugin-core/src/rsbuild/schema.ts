@@ -9,7 +9,7 @@ export const tanstackStartRsbuildOptionsSchema =
   tanstackStartOptionsObjectSchema
     .extend({
       rsbuild: z
-        .object({ installDevServerMiddleware: z.boolean().optional() })
+        .object({ installServerMiddleware: z.boolean().optional() })
         .optional(),
     })
     .optional()

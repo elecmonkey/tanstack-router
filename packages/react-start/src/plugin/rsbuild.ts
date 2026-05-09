@@ -10,6 +10,16 @@ import type {
 } from '@tanstack/start-plugin-core/rsbuild'
 import type { RsbuildPlugin } from '@rsbuild/core'
 
+const reactStartRsbuildEnvironmentOverrides = {
+  all: {
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
+  },
+} satisfies NonNullable<
+  TanStackStartRsbuildPluginCoreOptions['rsbuild']
+>['environments']
+
 export function tanstackStart(
   options?: TanStackStartRsbuildInputConfig & { rsc?: { enabled?: boolean } },
 ): RsbuildPlugin {
@@ -20,6 +30,9 @@ export function tanstackStart(
     defaultEntryPaths: reactStartDefaultEntryPaths,
     providerEnvironmentName: RSBUILD_ENVIRONMENT_NAMES.server,
     ssrIsProvider: true,
+    rsbuild: {
+      environments: reactStartRsbuildEnvironmentOverrides,
+    },
   }
 
   if (rscEnabled) {

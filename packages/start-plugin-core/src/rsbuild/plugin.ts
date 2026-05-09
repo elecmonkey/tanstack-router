@@ -24,7 +24,7 @@ import {
   START_MANIFEST_PLACEHOLDER,
   registerVirtualModules,
 } from './virtual-modules'
-import { createServerSetup } from './dev-server'
+import { createServerSetup } from './server-middleware'
 import { registerClientBuildCapture } from './normalized-client-build'
 import { registerRouterPlugins } from './start-router-plugin'
 import { postBuildWithRsbuild } from './post-build'
@@ -142,6 +142,8 @@ export function tanStackStartRsbuild(
 
         const resolvedEntryPlan = configContext.resolveEntries()
         const isDev = api.context.action === 'dev'
+        const isPreview = api.context.action === 'preview'
+        const shouldInstallServerMiddleware = isDev || isPreview
 
         const entryAliases = createRsbuildResolvedEntryAliases({
           entryPaths: resolvedEntryPlan.entryPaths,
@@ -207,11 +209,14 @@ export function tanStackStartRsbuild(
             htmlFallback: false,
             // server.setup returned callback runs after built-in middleware
             // but BEFORE fallback middleware — the ideal slot for SSR.
-            ...(isDev &&
-            startPluginOpts.rsbuild?.installDevServerMiddleware !== false
+            ...(shouldInstallServerMiddleware &&
+            startPluginOpts.rsbuild?.installServerMiddleware !== false
               ? {
                   setup: createServerSetup({
                     serverFnBasePath: serverFnBase,
+                    serverOutputDirectory:
+                      resolvedStartConfig.outputDirectories.server,
+                    publicBase: resolvedStartConfig.basePaths.publicBase,
                   }),
                 }
               : {}),
