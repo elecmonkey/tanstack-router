@@ -288,6 +288,32 @@ test('Direct POST submitting FormData to a Server function returns the correct m
   expect(result).toBe(expected)
 })
 
+test('CSRF middleware rejects cross-site Server function requests', async ({
+  page,
+  request,
+}) => {
+  await page.goto('/submit-post-formdata')
+  await page.waitForLoadState('networkidle')
+
+  const actionUrl = await page
+    .getByTestId('submit-post-formdata-form')
+    .getAttribute('action')
+
+  expect(actionUrl).toBeTruthy()
+
+  const response = await request.post(actionUrl!, {
+    headers: {
+      'Sec-Fetch-Site': 'cross-site',
+    },
+    multipart: {
+      name: 'Sean',
+    },
+  })
+
+  expect(response.status()).toBe(403)
+  await expect(response.text()).resolves.toBe('Forbidden')
+})
+
 test("server function's dead code is preserved if already there", async ({
   page,
 }) => {
@@ -744,8 +770,8 @@ test('redirect via server function with middleware does not cause serialization 
 })
 
 test.describe('unhandled exception in middleware (issue #5266)', () => {
-  // Whitelist the expected 500 error since this test verifies error handling
-  test.use({ whitelistErrors: ['500'] })
+  // Whitelist expected browser console errors since this test verifies error handling.
+  test.use({ whitelistErrors: ['500', 'Unhandled middleware exception'] })
 
   test('does not crash server and shows error component', async ({ page }) => {
     // This test verifies that when a middleware throws an unhandled exception,
